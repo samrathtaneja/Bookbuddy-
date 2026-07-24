@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Batter AI Books</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#071b34;
+color:white;
+margin:0;
+}
+
+header{
+background:#0f2b59;
+padding:20px;
+text-align:center;
+}
+
+h1{
+color:#4da3ff;
+}
+
+.page{
+display:none;
+padding:20px;
+}
+
+.show{
+display:block;
+}
+
+.card{
+background:#173b73;
+padding:20px;
+border-radius:15px;
+margin-top:20px;
+}
+
+input,textarea{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:10px;
+border:none;
+box-sizing:border-box;
+}
+
+textarea{
+height:150px;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:15px;
+border:none;
+border-radius:10px;
+background:#2f7dff;
+color:white;
+font-size:17px;
+}
+
+.book{
+background:#214b89;
+padding:15px;
+margin-top:15px;
+border-radius:12px;
+}
+
+.fab{
+position:fixed;
+right:20px;
+bottom:20px;
+width:65px;
+height:65px;
+border-radius:50%;
+font-size:30px;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+<h1>🤖 Batter AI</h1>
+
+<p>Write Books Inspire Students</p>
+
+</header>
+
+
+
+<!-- PROFILE PAGE -->
+
+<div id="profile" class="page show">
+
+<div class="card">
+
+
+<h2>Create Student Account</h2>
+
+
+<input id="name" placeholder="Student Name">
+
+
+<input id="studentPassword" type="password" placeholder="Create Password">
+
+
+<input id="school" placeholder="School Name">
+
+
+<input id="className" placeholder="Class">
+
+
+
+<button onclick="createProfile()">
+Create Account
+</button>
+
+
+
+<button onclick="studentLogin()">
+Student Login
+</button>
+
+
+
+<button onclick="openTeam()">
+Team Login
+</button>
+
+
+</div>
+
+</div>
+
+<!-- STUDENT BOOKS PAGE -->
+
+<div id="books" class="page">
+
+<div class="card">
+
+<h2 id="welcome">
+📚 My Books
+</h2>
+
+<p>Create your own books.</p>
+
+</div>
+
+
+<div id="bookList"></div>
+
+
+<button class="fab" onclick="openCreate()">
++
+</button>
+
+
+</div>
+
+
+
+
+
+<!-- CREATE BOOK PAGE -->
+
+<div id="createBook" class="page">
+
+<div class="card">
+
+
+<h2>Create Book</h2>
+
+
+<input id="title" placeholder="Book Title">
+
+
+<textarea id="content" placeholder="Write your book here"></textarea>
+
+
+
+<button onclick="saveBook()">
+
+Publish Book
+
+</button>
+
+
+
+<button onclick="backBooks()">
+
+Back
+
+</button>
+
+
+</div>
+
+</div>
+
+
+
+
+
+
+<!-- STUDENT LOGIN PAGE -->
+
+
+<div id="studentLogin" class="page">
+
+
+<div class="card">
+
+
+<h2>Student Login</h2>
+
+
+
+<input id="loginName" placeholder="Student Name">
+
+
+
+<input id="loginPassword" type="password" placeholder="Password">
+
+
+
+<button onclick="loginStudent()">
+
+Login
+
+</button>
+
+
+
+<button onclick="backProfile()">
+
+Back
+
+</button>
+
+
+</div>
+
+
+</div>
+ <!-- TEAM LOGIN PAGE -->
+
+<div id="teamLogin" class="page">
+
+<div class="card">
+
+
+<h2>Team Login</h2>
+
+
+<input id="teamId" placeholder="Team ID">
+
+
+<input id="teamPassword" type="password" placeholder="Password">
+
+
+
+<button onclick="loginTeam()">
+
+Login
+
+</button>
+
+
+</div>
+
+</div>
+
+
+
+
+
+<!-- TEAM DASHBOARD -->
+
+<div id="dashboard" class="page">
+
+
+<div class="card">
+
+<h2>📚 Team Dashboard</h2>
+
+<p>All Student Books</p>
+
+</div>
+
+
+
+<div id="allBooks"></div>
+
+
+
+<button onclick="logout()">
+
+Logout
+
+</button>
+
+
+</div>
+ <script type="module">
+
+import { initializeApp } from 
+"https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+
+import {
+getDatabase,
+ref,
+set,
+get,
+push,
+onValue,
+remove
+} from 
+"https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+
+const firebaseConfig = {
+
+apiKey:"AIzaSyAQKa1IUJWzn6YI6WDc5jz-dcOjiQiJ23Y",
+
+authDomain:"trade-3de73.firebaseapp.com",
+
+databaseURL:"https://trade-3de73-default-rtdb.firebaseio.com",
+
+projectId:"trade-3de73",
+
+storageBucket:"trade-3de73.firebasestorage.app",
+
+messagingSenderId:"956202661440",
+
+appId:"1:956202661440:web:d199214a56def4cec451a5"
+
+};
+
+
+const app = initializeApp(firebaseConfig);
+
+const db = getDatabase(app);
+
+
+let user="";
+
+
+
+// PAGE CHANGE
+
+window.showPage=function(page){
+
+document.querySelectorAll(".page").forEach(p=>{
+
+p.classList.remove("show");
+
+});
+
+
+document.getElementById(page).classList.add("show");
+
+}
+
+
+
+// CREATE ACCOUNT
+
+window.createProfile=async function(){
+
+let name=document.getElementById("name").value.trim();
+
+let password=document.getElementById("studentPassword").value.trim();
+
+
+if(!name || !password){
+
+alert("Enter details");
+
+return;
+
+}
+
+
+let check=await get(ref(db,"users/"+name));
+
+
+if(check.exists()){
+
+alert("Name already taken");
+
+return;
+
+}
+
+
+await set(ref(db,"users/"+name),{
+
+name:name,
+
+password:password
+
+});
+
+
+user=name;
+
+showPage("books");
+
+loadBooks();
+
+}
+
+
+
+// STUDENT LOGIN
+
+window.studentLogin=function(){
+
+showPage("studentLogin");
+
+}
+
+
+
+window.loginStudent=async function(){
+
+let name=document.getElementById("loginName").value;
+
+let password=document.getElementById("loginPassword").value;
+
+
+let data=await get(ref(db,"users/"+name));
+
+
+if(data.exists() && data.val().password==password){
+
+user=name;
+
+showPage("books");
+
+loadBooks();
+
+}
+
+else{
+
+alert("Wrong login");
+
+}
+
+}
+
+
+
+// CREATE BOOK
+
+window.openCreate=function(){
+
+showPage("createBook");
+
+}
+
+
+window.backBooks=function(){
+
+showPage("books");
+
+}
+
+
+window.backProfile=function(){
+
+showPage("profile");
+
+}
+
+
+
+window.saveBook=async function(){
+
+let title=document.getElementById("title").value;
+
+let content=document.getElementById("content").value;
+
+
+if(!title || !content){
+
+alert("Write a book");
+
+return;
+
+}
+
+
+let book=push(ref(db,"books"));
+
+
+await set(book,{
+
+title:title,
+
+content:content,
+
+author:user
+
+});
+
+
+showPage("books");
+
+loadBooks();
+
+}
+
+
+
+// SHOW STUDENT BOOKS
+
+function loadBooks(){
+
+onValue(ref(db,"books"),snapshot=>{
+
+
+let html="";
+
+
+snapshot.forEach(item=>{
+
+
+let book=item.val();
+
+
+if(book.author==user){
+
+
+html+=`
+
+<div class="book">
+
+<h3>📖 ${book.title}</h3>
+
+<p>${book.content.substring(0,100)}...</p>
+
+</div>
+
+`;
+
+}
+
+
+});
+
+
+document.getElementById("bookList").innerHTML=html;
+
+
+});
+
+}
+
+
+
+// TEAM LOGIN
+
+window.openTeam=function(){
+
+showPage("teamLogin");
+
+}
+
+
+
+window.loginTeam=function(){
+
+let id=document.getElementById("teamId").value;
+
+let pass=document.getElementById("teamPassword").value;
+
+
+if(id=="shreeji" && pass=="shree ji"){
+
+showPage("dashboard");
+
+showAllBooks();
+
+}
+
+else{
+
+alert("Wrong ID or Password");
+
+}
+
+}
+
+
+
+// TEAM VIEW ALL BOOKS
+
+function showAllBooks(){
+
+
+onValue(ref(db,"books"),snapshot=>{
+
+
+let html="";
+
+
+snapshot.forEach(item=>{
+
+
+let book=item.val();
+
+
+html+=`
+
+<div class="book">
+
+<h3>📚 ${book.title}</h3>
+
+<p><b>Author:</b> ${book.author}</p>
+
+
+<button onclick="readBook('${item.key}')">
+
+📖 Read Book
+
+</button>
+
+
+<button onclick="deleteBook('${item.key}')">
+
+🗑 Delete Book
+
+</button>
+
+
+</div>
+
+`;
+
+});
+
+
+document.getElementById("allBooks").innerHTML=html;
+
+
+});
+
+
+}
+
+
+
+// READ BOOK
+
+window.readBook=async function(id){
+
+let data=await get(ref(db,"books/"+id));
+
+let book=data.val();
+
+
+document.getElementById("allBooks").innerHTML=`
+
+<div class="book">
+
+<h2>${book.title}</h2>
+
+<p><b>Author:</b> ${book.author}</p>
+
+<p>${book.content}</p>
+
+
+<button onclick="showAllBooks()">
+
+Back
+
+</button>
+
+</div>
+
+`;
+
+}
+
+
+
+// DELETE BOOK
+
+window.deleteBook=function(id){
+
+if(confirm("Delete this book?")){
+
+remove(ref(db,"books/"+id));
+
+}
+
+}
+
+
+
+// LOGOUT
+
+window.logout=function(){
+
+user="";
+
+showPage("profile");
+
+}
+
+
+</script>
+
+
+</body>
+
+</html>
